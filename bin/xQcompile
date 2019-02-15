@@ -1,18 +1,11 @@
 #!/usr/bin/env bash
 source .env
-TYPE=$1
-if [ -z "${TYPE}" ] ; then
-  FILE_NAME=${NAME}
-  SRC="content/${NAME}.xqm"
-else
-  FILE_NAME=t-${NAME}
-  SRC="unit-tests/t-${NAME}.xqm"
-fi
-
+SRC=$1
+FILE_NAME=$( basename $SRC )
 docker cp ${SRC} ${CONTAINER}:/tmp
-
+# docker exec ${CONTAINER} ls /tmp
 IPAddress=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER)
-URL="http://${IPAddress}:${PORT}/exist/rest/db"
+URL="http://${IPAddress}:8080/exist/rest/db"
 
 function post() {
 curl  -s \
@@ -30,7 +23,7 @@ cat <<EOF | post > tmp/compile.log
 xquery version '3.1';
 try {
   let \$nl := "&#10;"
-  let \$file := '/tmp/${FILE_NAME}.xqm'
+  let \$file := '/tmp/${FILE_NAME}'
   let \$moduleLoadPath := 'xmldb:exist://' || request:get-path-info()
   let \$compiled :=  file:read(\$file) => util:compile-query(\$moduleLoadPath)
   return (

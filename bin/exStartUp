@@ -12,8 +12,24 @@ if [ -n "$(dkrStatus)" ] ; then
 else 
  echo " - start up $CONTAINER"
 fi
+if [[ -z ${TRAVIS+x} ]]; then 
+  if  [[ $USE_DC_OVERRIDE == 'yes'  ]]; then
+  # https://docs.docker.com/compose/networking/#using-a-pre-existing-network
+  echo ' - USE_DC_OVERRIDE has been set to yes'  
+  echo ' - not on travis-ci: using docker overide file'  
+  docker-compose up -d 
+else
+  # TODO check if conflict
+  echo ' - USE_DC_OVERRIDE not set to yes'  
+  echo ' - not on travis-ci: not using overide file'  
+  docker-compose up -f docker-compose.yml -d
+fi
+else 
+  echo ' - on travis-ci: not using overide'  
+  docker-compose up -d 
+fi
 
-docker-compose up -d
+
 #sleep 5
 echo ' - WAIT until docker logs say [ Server has started ] '
 N=0

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 source .env
+SRC=$1
+BASENAME=$( basename $SRC )
+docker cp ${SRC} ${CONTAINER}:/tmp
 IPAddress=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER)
-URL="http://${IPAddress}:${PORT}/exist/rest/db"
+URL="http://${IPAddress}:8080/exist/rest/db"
 
 function post() {
 curl  -s \
@@ -19,7 +22,7 @@ cat <<EOF | post
 xquery version '3.1';
 try {
   let \$directory  := '/tmp'
-  let \$resource := '${NAME}.xar'
+  let \$resource := '${BASENAME}'
   let \$collection := 'xmldb:exist://' || request:get-path-info()
   let \$mimeType  := 'application/expath+xar'
   let \$fsPath  := \$directory || '/' || \$resource

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 source .env
 IPAddress=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER)
-URL="http://${IPAddress}:${PORT}/exist/rest/db"
-SRC="content/${NAME}.xqm"
+URL="http://${IPAddress}:8080/exist/rest/db"
+SRC="unit-tests/t-${NAME}.xqm"
+BASENAME=$( basename $SRC)
 nsname=http://${NS_DOMAIN}/#${NAME}
 # copy the test file into container
-docker cp unit-tests/t-${NAME}.xqm ${CONTAINER}:/tmp
+docker cp $SRC ${CONTAINER}:/tmp
 
 # generic post function
 function post() {
@@ -36,19 +37,17 @@ try {
   let \$SUCCESS := \$nl || 'ok' || \$space
   let \$FAILURE := \$nl || 'not ok' || \$space
   let \$YAMLStartEnd := \$nl || '---'
-  let \$file := '/tmp/t-${NAME}.xqm'
-  let \$resource := 't-${NAME}.xqm'
+  let \$file := '/tmp/${BASENAME}'
+  let \$resource := '${BASENAME}'
   let \$collection := 'xmldb:exist://' || request:get-path-info()
-  let \$resource := 't-${NAME}.xqm'
   let \$route := \$collection  || '/' || \$resource
   let \$mimeType :=  'application/xquery'
   let \$contents := file:read(\$file)
   let \$perm := 'rwxr-xr-x'
-  let \$nsURI := xs:anyURI('${nsname}')
   let \$store :=
      xmldb:store(\$collection, \$resource, \$contents, \$mimeType) 
      => xs:anyURI() 
-     => sm:chmod(\$perm )
+     => sm:chmod(\$perm)
   let \$ts := test:suite(xs:anyURI(\$route) => inspect:module-functions())
   let \$diag := function( \$sName ){
     for-each( \$sName => tokenize('\n' ), function(\$line ){

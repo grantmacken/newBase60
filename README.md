@@ -16,13 +16,18 @@ Note: When using URL shorteners, you should also provide a
 [canonical link element](https://en.wikipedia.org/wiki/Canonical_link_element)
 in your html documents if the document can be reached using the expanded archive URL
 
+
+# Building From Source
+
+
+
 ## Requirements
 
 This repo contains some bash scripts, and uses common gnu utilities,
 included in most nix based distros. 
+ - docker: - to run fresh eXist instances
  - git, grep, sed
  - make:   - to build and test
- - docker: - to run eXist
  - prove: - to run tests
  - curl:  - to make http request to eXist
 
@@ -32,14 +37,17 @@ occur in a simple stock travis (docker 'language c') setup.
 ## Repo Source Code Conventions
 
 ```
+├── .env
 ├── content
 │   └── newBase60.xqm   - the xQuery library named after this repo name
 └── unit-tests
     └── t-newBase60.xqm - same as above but prefixed with 't-'
 ```
-
-These are the only source code file the remainder files are just scaffolding
+These are the only source code files the remainder files are just scaffolding
 put in place to build the deployable archive *xar*
+
+Apart form these 2 files, the Makefile contains..
+
 
 ## Repo Build Scaffolding
 
