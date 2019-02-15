@@ -4,5 +4,6 @@ language: c
 services:
 - docker
 install: make
-script: echo "hi"
+script: make test
+
 
