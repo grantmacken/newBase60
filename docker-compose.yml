@@ -1,13 +1,12 @@
 version: '3.4'
 services:
-  exist:
+  exDev-newBase60:
     image: $DOCKER_IMAGE:$DOCKER_TAG
     container_name: $CONTAINER
     ports:
-      - $PORT:$PORT
-    networks:
-      - www
-networks:
-  www:
-    driver: bridge
+      - $PORT:8080
 
+networks:
+  default:
+    external:
+      name: www
