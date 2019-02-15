@@ -3,7 +3,7 @@ dist: xenial
 language: c
 services:
 - docker
-before-install: make up
+before_install: make up
 install: make
 script: make test
 deploy:
