@@ -1,5 +1,7 @@
 # [A New Base 60 Encoding Decoding xQuery Library](https://github.com/grantmacken/newBase60)
 
+[![Build Status](https://travis-ci.org/grantmacken/newBase60.svg?branch=master)](https://travis-ci.org/grantmacken/newBase60)
+
 The [New Base 60](http://tantek.pbworks.com/w/page/19402946/NewBase60)
 numbering system was designed for URL shortening with a limited easy to read character set.
 
@@ -19,12 +21,12 @@ in your html documents if the document can be reached using the expanded archive
 
 # Building From Source
 
-
+WIP TODO! ...
 
 ## Requirements
 
 This repo contains some bash scripts, and uses common gnu utilities,
-included in most nix based distros. 
+included in most mac and nix based distros. 
  - docker: - to run fresh eXist instances
  - git, grep, sed
  - make:   - to build and test
@@ -39,14 +41,29 @@ occur in a simple stock travis (docker 'language c') setup.
 ```
 ├── .env
 ├── content
-│   └── newBase60.xqm   - the xQuery library named after this repo name
+│   └── newBase60.xqm   => build/content/newBase60.xqm  => into archive xar
+│       - the xQuery library named after this repo name
 └── unit-tests
-    └── t-newBase60.xqm - same as above but prefixed with 't-'
+    └── t-newBase60.xqm
 ```
-These are the only source code files the remainder files are just scaffolding
-put in place to build the deployable archive *xar*
 
-Apart form these 2 files, the Makefile contains..
+Apart from these 2 files, 
+we have a couple of 'easy to tinker with' 
+ boilerplate includes in the inc directory
+
+```
+
+├── .env
+├── Makefile
+├── inc
+│   ├── expath-pkg.mk: => build/xpath-pkg.xml  => into archive xar
+│   └── repo.mk        => build/xpath-pkg.xml  => into archive xar
+
+```
+
+
+The above mentioned 4 file are the only source code files the remainder files are just scaffolding
+put in place to build the deployable archive *xar*
 
 
 ## Repo Build Scaffolding
@@ -56,16 +73,21 @@ Apart form these 2 files, the Makefile contains..
 ├── docker-compose.yml
 ├── Makefile => run `make` calls bash scripts in bin
 ├── bin
-│   ├── exStartUp
+│   ├── exStartUp => `make up`
 │   ├── semVer
-│   ├── xQcompile
+│   ├── xQcompile  
 │   ├── xQdeploy
 ```
 
-NOTE: If you haven't got the docker image it has to be downloaded first
-You may want to use `make up` the first time to obtain the image.
-If you are already running eXist container( or anything ) on port 8080 
-stop it first. The container port is set in the .env file
+NOTE: 
+If you haven't got the docker image it has to be downloaded first
+This will happen auto magically when you call `make up`
+
+### Attaching to existing docker network
+
+TODO! ....
+
+The container port is set in the .env file
 
 ## Repo Test Scaffolding
 
