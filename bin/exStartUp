@@ -26,7 +26,7 @@ else
 fi
 else 
   echo ' - on travis-ci: not using overide'  
-  docker-compose up -d 
+  docker-compose up -f docker-compose.yml -d 
 fi
 
 
