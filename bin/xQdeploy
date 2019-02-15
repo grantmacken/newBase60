@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+source .env
+IPAddress=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER)
+URL="http://${IPAddress}:${PORT}/exist/rest/db"
+
+function post() {
+curl  -s \
+  -H 'Content-Type: application/xml' \
+  -u 'admin:' \
+  --write-out  'INFO: time to complete deploy: %{time_total}' \
+  --output 'tmp/body.txt' \
+  --dump-header 'tmp/headers.txt' \
+  --data-binary @- "$URL"
+}
+
+cat <<EOF | post
+<query xmlns='http://exist.sourceforge.net/NS/exist' start='1' max='99' wrap='no'>
+<text><![CDATA[
+xquery version '3.1';
+try {
+  let \$directory  := '/tmp'
+  let \$resource := '${NAME}.xar'
+  let \$collection := 'xmldb:exist://' || request:get-path-info()
+  let \$mimeType  := 'application/expath+xar'
+  let \$fsPath  := \$directory || '/' || \$resource
+  let \$contents := file:read-binary(\$fsPath)
+  return (
+    xmldb:store(\$collection ,\$resource, \$contents, \$mimeType) =>
+    repo:install-and-deploy-from-db()
+  )} catch * {
+      \$err:code || ': '  || \$err:description || '&#10;'
+}
+]]></text>
+</query>
+EOF
+echo
+# TODO add check on status .txt body and headers
+# echo '========================================='
+# echo "$(<tmp/body.txt)"
+# echo '========================================='
+# echo "$(<tmp/headers.txt)"
+# echo '========================================='
+
+res=$(grep -oP '^(.+)\Kresult="ok" target="(.+)"' tmp/body.txt)
+if [ -n "${res}" ] ; then
+  echo "INFO: ${res}"
+else
+  echo "$(<tmp/body.txt)"
+  exit 2
+fi
+
+grep -q 'HTTP/1.1 400' headers.txt &>/dev/null && exit 2
+rm -f tmp/{body.txt,headers.txt}

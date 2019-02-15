@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+BUMP=$1
+
+function semver(){
+local v=$( echo "${1}" | sed 's/v//' )
+local semverMajor=$( cut -d'.' -f1 <<<  ${v} )
+local semverMinor=$( cut -d'.' -f2 <<<  ${v} )
+local semverPatch=$( cut -d'.' -f3 <<<  ${v} )
+local currentVer="v${semverMajor}.${semverMinor}.${semverPatch}"
+case "${2}" in
+  patch)
+  newVer="v${semverMajor}.${semverMinor}.$((semverPatch + 1))"
+  ;;
+  minor)
+  newVer="v${semverMajor}.$((semverMinor + 1)).0"
+  ;;
+  major)
+  newVer="v$((semverMajor + 1)).0.0"
+  ;;
+  *)
+  newVer="v${semverMajor}.${semverMinor}.$((semverPatch + 1))"
+esac
+echo "${newVer}"
+}
+
+source .env
+NEW_VERSION=$(semver $VERSION $BUMP)
+sed -i "s/^VERSION=${VERSION}/VERSION=${NEW_VERSION}/" .env
+
+

@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+source .env
+IPAddress=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER)
+URL="http://${IPAddress}:${PORT}/exist/rest/db"
+SRC="content/${NAME}.xqm"
+nsname=http://${NS_DOMAIN}/#${NAME}
+# copy the test file into container
+docker cp unit-tests/t-${NAME}.xqm ${CONTAINER}:/tmp
+
+# generic post function
+function post() {
+curl  -s \
+  -H 'Content-Type: application/xml' \
+  -u 'admin:' \
+  --write-out  '\nstatus: %{http_code}\n' \
+  --output 'tmp/body.txt' \
+  --dump-header 'tmp/headers.txt' \
+  --data-binary @- "$URL"
+}
+
+# TODO
+# turn error message into a yaml block
+#
+
+cat <<EOF | post > tmp/test.log
+<query xmlns='http://exist.sourceforge.net/NS/exist' start='1' max='99' wrap='no'>
+<text><![CDATA[
+xquery version '3.1';
+import module namespace inspect = "http://exist-db.org/xquery/inspection";
+import module namespace test="http://exist-db.org/xquery/xqsuite" at "resource:org/exist/xquery/lib/xqsuite/xqsuite.xql";
+try {
+  let \$nl := "&#10;"
+  let \$space := '&#32;'
+  let \$indent := \$space || \$space
+  let \$HASH := \$nl || '#' || \$space
+  let \$SUCCESS := \$nl || 'ok' || \$space
+  let \$FAILURE := \$nl || 'not ok' || \$space
+  let \$YAMLStartEnd := \$nl || '---'
+  let \$file := '/tmp/t-${NAME}.xqm'
+  let \$resource := 't-${NAME}.xqm'
+  let \$collection := 'xmldb:exist://' || request:get-path-info()
+  let \$resource := 't-${NAME}.xqm'
+  let \$route := \$collection  || '/' || \$resource
+  let \$mimeType :=  'application/xquery'
+  let \$contents := file:read(\$file)
+  let \$perm := 'rwxr-xr-x'
+  let \$nsURI := xs:anyURI('${nsname}')
+  let \$store :=
+     xmldb:store(\$collection, \$resource, \$contents, \$mimeType) 
+     => xs:anyURI() 
+     => sm:chmod(\$perm )
+  let \$ts := test:suite(xs:anyURI(\$route) => inspect:module-functions())
+  let \$diag := function( \$sName ){
+    for-each( \$sName => tokenize('\n' ), function(\$line ){
+      if (string-length(\$line) gt 0 ) then ( \$HASH || \$line )
+      else ()
+      })
+    }
+  let \$extractErrMsg := function( \$sMessage ){
+  \$sMessage =>
+  substring-after(' ') =>
+  substring-before('.') =>
+  substring-after(':') =>
+  substring-before(':')
+  }
+  let \$extractErrGot := function( \$sMessage ){
+  \$sMessage =>
+  substring-after('.') =>
+  substring-before('. [at line') =>
+  substring-after('got') =>
+  normalize-space()
+  }
+  let \$errLineColTokens := function( \$sMessage ){
+  \$sMessage =>
+  substring-after('[') =>
+  substring-before(']') =>
+  normalize-space() =>
+  tokenize(',')
+  }
+
+  let \$extractErrExpect := function( \$sMessage ){
+  \$sMessage =>
+  substring-after('.') =>
+  substring-before('. [at line') =>
+  substring-before('got') =>
+  substring-after(':') =>
+  translate(',','') =>
+  normalize-space()
+  }
+
+  let \$extractErrLine := function( \$sMessage ){
+   \$errLineColTokens(\$sMessage)[1] => 
+   substring-after('line') => normalize-space() 
+  } 
+  let \$extractErrCol := function( \$sMessage ){
+   \$errLineColTokens(\$sMessage)[2] => 
+   substring-after('column') => normalize-space() 
+  }
+  let \$extractErrSrc := function( \$sMessage ){
+   \$errLineColTokens(\$sMessage)[3] => 
+   substring-after('source') =>
+   translate(':','') =>
+   normalize-space() 
+  }
+  let \$extractErrFunc := function( \$sMessage ){
+   \$errLineColTokens(\$sMessage)[4] => 
+   substring-after('source') =>
+   translate(':','') =>
+   normalize-space()
+  }
+  let \$success   := function(\$map){\$SUCCESS || \$map('counter') || ' - ' || \$map('class') }
+ let \$failure := function(\$map){( 
+ \$FAILURE, \$map('counter'), \$space, \$map('class'),
+ for-each(\$map('name') => tokenize('\n' ), function(\$line ){
+   if (string-length(\$line) gt 0 ) then ( \$HASH || \$line  )
+   else ()
+}),
+ \$YAMLStartEnd,
+ \$nl,\$indent, ' message: ' || \$map('message'),
+ \$nl,\$indent, 'expected: ' || \$map('expected'),
+ \$nl,\$indent, '     got: ' || \$map('got'),
+ \$YAMLStartEnd
+ )}
+ let \$error := function(\$map){
+ \$FAILURE, \$map('counter'), \$space, \$map('class'),
+ \$diag(\$map('name')),
+ \$YAMLStartEnd,
+ \$nl,\$indent, '    type: '  || \$map('type'),
+ if ( \$map('type') = 'err:FORG0001' )  then (
+ \$nl,\$indent, ' message: '  || \$map('message')
+ )
+ else (
+  \$nl,\$indent, ' message: '  || \$extractErrMsg(\$map('message')),
+ \$nl,\$indent, 'expected: '  || \$extractErrExpect(\$map('message')),
+ \$nl,\$indent, '     got: '  || \$extractErrGot(\$map('message')),
+ \$nl,\$indent, 'location: ',
+ \$nl,\$indent, '  - line: '  || \$extractErrLine(\$map('message')),
+ \$nl,\$indent, '  - column: '  || \$extractErrCol(\$map('message')),
+ \$nl,\$indent, '  - source: '  || \$extractErrSrc(\$map('message'))
+ ),
+ \$YAMLStartEnd
+}
+  return (
+  'TAP version 13' || \$nl,
+  '1..' || \$ts/testsuite[1]/@tests/string(),
+   for \$node at \$i in  \$ts//testcase
+     let \$map := map {
+     'counter': string(\$i),
+     'name': \$node/@name/string(),
+     'class': \$node/@class/string() => normalize-space()
+   }
+   return (
+       if( \$node/failure[@message]  ) then( 
+       \$failure( map:new((
+         \$map,
+         map {
+          'message' : \$node/failure/@message/string(),
+         'expected' : \$node/failure//string(),
+              'got' : \$node/output/string()
+        }
+       ))))
+       else if( \$node/error[@message]  )then(
+         \$error( map:new((
+         \$map,
+         map {
+          'type' : \$node/error/@type/string(),
+          'message' : \$node/error/@message/string()
+        }
+         ))))
+       else( \$success(\$map))
+  ), 
+  (:
+  \$nl,
+  \$ts,
+  :)
+  \$nl
+)} catch * {
+      'Error:${SRC}:' || \$err:code || ': '  || \$err:description || '&#10;'
+}
+]]></text>
+</query>
+EOF
+
+echo "$(<tmp/body.txt)"
+# echo "$(<tmp/headers.txt)"
+grep -oP '^err' body.txt &>/dev/null && exit 2
+grep -q '400 Bad Request' headers.txt &>/dev/null && exit 2
+
+rm -r tmp/*.txt
+

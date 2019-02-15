@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+source .env
+mkdir -p {build,deploy,tmp}
+
+echo "$CONTAINER"
+
+function dkrStatus {
+docker ps --filter name=$CONTAINER --format 'status: {{.Status}}'
+}
+
+if [ -n "$(dkrStatus)" ] ; then
+ echo " - $CONTAINER  up"
+ exit
+else 
+ echo " - start up $CONTAINER"
+fi
+
+docker-compose up -d
+#sleep 5
+echo ' - WAIT until docker logs say [ Server has started ] '
+N=0
+until docker logs $CONTAINER | grep -oPq '^.+\KServer has started.+'  2>/dev/null || [ $N -eq 30 ]
+ do echo -n $N && sleep $(( N++ ))
+done
+echo '========================================='
+dkrStatus
+echo '------------------------------'
+IPAddress=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER)
+echo ' eXist should now be reachable via curl ...'
+curl -Is http://${IPAddress}:${PORT}/exist 
+echo '========================================='
+docker logs $CONTAINER | head -n 7 | grep -oP ' - .+$' | tee tmp/startup.log
+echo '========================================='
+docker logs $CONTAINER | tail -n 7 | grep -oP ' - .+$' | tee -a tmp/startup.log
+
