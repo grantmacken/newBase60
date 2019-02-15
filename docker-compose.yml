@@ -6,7 +6,3 @@ services:
     ports:
       - $PORT:8080
 
-networks:
-  default:
-    external:
-      name: www
