@@ -4,12 +4,5 @@ language: c
 services:
 - docker
 install: make
-script: make test
-before_deploy:
-  - export GITHUB_USER="${TRAVIS_REPO_SLUG%/*}"
-  - export GITHUB_EMAIL="${TRAVIS_REPO_SLUG%/*}@gmail.com"
-  - export BASE="${TRAVIS_REPO_SLUG#*/}"
-  - git config --local user.name "$GITHUB_USER"
-  - git config --local user.email "$GITHUB_EMAIL"
-  - git checkout .env
+script: echo "hi"
 
