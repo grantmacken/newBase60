@@ -1,5 +1,0 @@
-version: '3.4'
-networks:
-  default:
-    external:
-      name: $DC_OVERRIDE_NETWORK
