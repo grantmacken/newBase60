@@ -5,5 +5,14 @@ services:
 - docker
 install: make
 script: make test
-
-
+deploy:
+  provider: releases
+  api_key:
+    secure: dqmA2QzMsRTTOOWvZWJeQ4liT4A88eTkzdOfQP8vWVkQkSRI2Ag54/R91itcTG212eEq/ti3rUR2e+9F90CwdURkdac/KsB+H/DOcCFIhH+5qfnbIVtGL0yqAhvRwxosN6bOB+J9l7XINNZWpS23tTtae3iqLXsVzL6Vb7jvjJrpPkbMZcD5TOOp1EZCnGmRnml0R5QXqyMf1sibHBPlAbJ3WNOq8cmjiyr5BEttDxI+Q88sgYcCzyd344laS/DApYoE3XgBl+37NkTVrxC+F9G3ITE7wR6oRPETYroROzFLTghSA+x4qwwh735xDaTww8CQ7MipcNvq21qPI2JXlbuHu7NtXZFIRxxVSuq3W67LViz0NkzURjTTnyRpwNk9qlxnvn6lfgHhi8js8sKsP6cG8iDaMHpal8kDfTet4cXsTXn+gS+sopgZRKuyrV+HZ2QsQ+ylnmGPm9aiSzeaZgw0gwW/Ut5NRq4diCc5SQdTJC/RYS1XCpq885jjQIzZVnp1Svl8jVLU5v7ftb7ntMCOHhFXesUMmeY9uW+UzIlqnSEQ94H4zLz39n3RDtWPPXBZlY4mlAyjD9TWzQb9d6PZ+Y/BZcWMIt9DZwOpH1HOcW9tishmUezyKoCVBL+NXqtW84C3IySs47G6/XPDP31uakfm2o3viUcH622Yapc=
+  skip_cleanup: true
+  on:
+    repo: grantmacken/newBase60
+    tags: true
+    branch:
+    - master
+    - "/v\\d+\\.\\d+\\.\\d+/"
