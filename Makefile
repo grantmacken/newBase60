@@ -9,6 +9,7 @@ all: deploy
 
 .PHONY: test
 test: unit-tests/t-$(NAME).xqm 
+	@bin/xQcompile test
 	@prove -v bin/xQtest
 
 .PHONY: up
@@ -24,7 +25,6 @@ down:
 .PHONY: compile
 compile: content/${NAME}.xqm up
 	@echo '##[ $@  $< ]##'
-	@docker cp $< $(CONTAINER):/tmp
 	@bin/xQcompile
 
 define repoXML
