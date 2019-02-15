@@ -15,8 +15,6 @@ module namespace newBase60  = "http://markup.nz/#newBase60";
 : 
 :)
 
-declare namespace test="http://exist-db.org/xquery/xqsuite";
-
 (:~
 show what lib can do in example
 :)
@@ -105,12 +103,6 @@ from a time or date represented as an integer encode as a base60 string
 @return a base60 encoded string 
 :)
 declare
-%test:name(
-"given short-date integer (18339), then `encode` function 
-should return [55e] which is an encoded base60 3 char string "
-)
-%test:args('18339')
-%test:assertEquals('55e')
 function newBase60:encode($n as xs:integer) as xs:string {
 let $seq1 := (0 to 9)
 let $seq2 := map(function($x) { codepoints-to-string($x) }, string-to-codepoints('A') to string-to-codepoints('H'))
@@ -135,17 +127,11 @@ string-join(map(function($n){$getChar($n)}, $seqNth),'')
 
 (:~
 from a newBase60 decode into a time or date represented as an integer
-@param $newBase60 as xs:string encoded date or time
+@param $nb60 as xs:string encoded date or time
 @return decoded a time or date represented as an integer
 :)
 declare 
-%test:name(
-"given a newBase60 encoded string (55e) then `decode` function should 
-return [18339] which represents a short 2 digit year + days in the year" 
-)
-%test:args('55e')
-%test:assertEquals('18339')
-function newBase60:decode($newBase60 as xs:string ) as xs:integer{
+function newBase60:decode($nb60 as xs:string ) as xs:integer{
   let $base := 60
 (:  The entry point is  $strB60 :)
   let $seqDecode :=
@@ -163,7 +149,7 @@ function newBase60:decode($newBase60 as xs:string ) as xs:integer{
      else if ($c >= 109 and $c <= 122 ) then ($c - 63)
      else(0)
      },
-     (map(function($ch){string-to-codepoints($ch)}, (for $ch in string-to-codepoints($newBase60)
+     (map(function($ch){string-to-codepoints($ch)}, (for $ch in string-to-codepoints($nb60)
     return codepoints-to-string($ch)))
      ))
   let $tot := function($n2, $c){xs:integer(($base * $n2) + $c )}
