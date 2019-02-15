@@ -2,8 +2,6 @@
 source .env
 mkdir -p {build,deploy,tmp}
 
-echo "$CONTAINER"
-
 function dkrStatus {
 docker ps --filter name=$CONTAINER --format 'status: {{.Status}}'
 }

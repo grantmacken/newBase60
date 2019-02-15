@@ -138,3 +138,16 @@ gitLog:
 	@git --no-pager log \
   -n 10\
  --pretty=format:'%Cred%h%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+
+
+.PHONY: rec
+rec:
+	asciinema rec tmp/newBase60.cast --overwrite --title='repo newBase60 run make' --command='make'
+
+iPHONY: play
+play:
+	asciinema play tmp/newBase60.cast
+
+.PHONY: upload
+upload:
+	asciinema upload tmp/newBase60.cast

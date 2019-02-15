@@ -76,6 +76,7 @@ stop it first. The container port is set in the .env file
     - compile check: see if ./content/newBase60.xqm can be compiled
     - build the archive xar ./build/*.xar
     - deploy library (as a xar archive) into running exist container
+    - [![asciicast](https://asciinema.org/a/L1lZiY8q5lGnHwhZ35JR5S9vF.svg)](https://asciinema.org/a/L1lZiY8q5lGnHwhZ35JR5S9vF)
  2. `make test`  
     - upload unit-test library 
     - test and produce a 'ok, not ok' TAP report 
