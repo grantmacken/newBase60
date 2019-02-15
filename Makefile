@@ -142,7 +142,7 @@ gitLog:
 
 .PHONY: rec
 rec:
-	asciinema rec tmp/newBase60.cast --overwrite --title='repo newBase60 run make' --command='make'
+	asciinema rec tmp/newBase60.cast --overwrite --title='grantmacken/newBase60 run `make test`  ' --command='make test --silent'
 
 iPHONY: play
 play:
