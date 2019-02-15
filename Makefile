@@ -108,7 +108,7 @@ reset:
 release:
 	@echo '##[ $@ ]##'
 	@echo -n "current latest tag: " 
-	@git describe --abbrev=0 --tag
+	@git describe --abbrev=0 --tag &>/dev/null || git tag v0.0.1
 	@# git describe --tags $(git rev-list --tags --max-count=1)
 	@echo 'revert .env VERSION to current tag' 
 	@source .env; sed -i "s/^VERSION=$${VERSION}/VERSION=$(shell git describe --abbrev=0 --tag )/" .env
