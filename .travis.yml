@@ -6,6 +6,7 @@ services:
 before_install: make up
 install: make
 script: make test
+after_success: make smoke
 deploy:
   provider: releases
   api_key:
