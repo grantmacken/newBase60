@@ -121,7 +121,8 @@ gitLog:
 .PHONY: smoke
 smoke: 
 	@echo '##[ $@ ]##'
-	@bin/xQcall 'newBase60:example()'
+	@bin/xQcall 'newBase60:example()' \
+ | grep -oP '^\s-\s(\w|-)(.+)$$'
 
 .PHONY: rec
 rec:
