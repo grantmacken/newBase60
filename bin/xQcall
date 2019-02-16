@@ -1,39 +1,39 @@
 #!/usr/bin/env bash
 source .env
-TYPE=$1
-if [ -z "${TYPE}" ] ; then
-  FILE_NAME=${NAME}
-  SRC="content/${NAME}.xqm"
-else
-  FILE_NAME=t-${NAME}
-  SRC="unit-tests/t-${NAME}.xqm"
-fi
+SRC="content/${NAME}.xqm"
+nsname=http://${NS_DOMAIN}/#${NAME}
+importNS=$(grep -oP '^module namespace(.+);$' $SRC)
+CALL=$1
 
 IPAddress=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER)
-URL="http://${IPAddress}:${PORT}/exist/rest/db"
+URL="http://${IPAddress}:8080/exist/rest/db"
 
 function post() {
 curl  -s \
   -H 'Content-Type: application/xml' \
   -u 'admin:' \
-  --write-out  '\nstatus: %{http_code}\n' \
-  --output 'tmp/body.txt' \
-  --dump-header 'tmp/headers.txt' \
   --data-binary @- "$URL"
 }
-cat <<EOF | post > tmp/compile.log
+cat <<EOF | post
 <query xmlns='http://exist.sourceforge.net/NS/exist' start='1' max='99' wrap='no'>
 <text><![CDATA[
 xquery version '3.1';
+import $importNS
 try {
   let \$nl := "&#10;"
-
-
 return (
-
-)} catch * {
+$CALL,
+\$nl)} catch * {
       'Error:${SRC}:' || \$err:code || ': '  || \$err:description || '&#10;'
 }
 ]]></text>
 </query>
 EOF
+
+# echo '========================================='
+# if [ ! -s tmp/body.txt ] ; then
+#   echo "Error:${SRC}:1:1: no curl reponse "
+#   exit 2
+# fi
+
+
