@@ -72,10 +72,8 @@ deploy/$(NAME).xar: \
 build: compile-main deploy/$(NAME).xar
 	@echo '##[ $@ ]##'
 	@bin/xQdeploy deploy/$(NAME).xar
-
-xxx: compile-main deploy/$(NAME).xar
-	@touch unit-tests/t-$(NAME).xqm
 	@bin/semVer patch
+	@touch unit-tests/t-$(NAME).xqm
 
 .PHONY: reset
 reset:
@@ -120,6 +118,10 @@ gitLog:
   -n 10\
  --pretty=format:'%Cred%h%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
 
+.PHONY: smoke
+smoke: 
+	@echo '##[ $@ ]##'
+	@bin/xQcall 'newBase60:example()'
 
 .PHONY: rec
 rec:
