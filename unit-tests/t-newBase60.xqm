@@ -39,9 +39,7 @@ newBase60:dateToInteger#1 test 1
 :)
 declare
 %test:name(
-"
-should convert first day of year 2019 to integer 18339
-"
+"should convert first day of year 2019 to integer 18339"
 )
 %test:args('2019-01-01T00:00:00')
 %test:assertEquals(191)
@@ -57,18 +55,13 @@ newBase60:timeToInteger#1 test 1
 :)
 declare
 %test:name(
-"
-should convert in time in last second of the day to integer 86399
-"
+"should convert in time in last second of the day to integer 86399"
 )
 %test:args('2018-12-05T23:59:59')
 %test:assertEquals(86399)
 function t-newBase60:convertLastSecondOfDayToSecondsFromDaysStartInteger($arg){
-(:  arrange        =>    action        :)
  xs:dateTime($arg) => newBase60:timeToInteger()
 };
-
-
 
 (:~
 newBase60:encode#1 test 1
@@ -78,15 +71,14 @@ newBase60:encode#1 test 1
 :)
 declare
 %test:name(
-"
-should convert dateTime to newBase60 encoded date 03B
-"
+"should convert dateTime to newBase60 encoded date 03B"
 )
 %test:args('2019-01-01T23:59:59')
 %test:assertEquals('03B')
 function t-newBase60:encodeFirstDayOfYearAsBase60Date($arg){
 xs:dateTime($arg) => newBase60:dateToInteger() => newBase60:encode()
 };
+
 
 (:~
 newBase60:encode#1 test 2
@@ -96,9 +88,7 @@ newBase60:encode#1 test 2
 :)
 declare
 %test:name(
-"
-should convert dateTime to newBase60 time
-"
+"should convert dateTime to newBase60 time"
 )
 %test:args('2019-01-01T23:59:59')
 %test:assertEquals('Pzz')
@@ -115,9 +105,7 @@ newBase60:decode#1 test 1
 :)
 declare
 %test:name(
-"
-should decode newBase60 to short date integer
-"
+"should decode newBase60 to short date integer"
 )
 %test:args('03B')
 %test:assertEquals(191)
@@ -134,8 +122,7 @@ newBase60:integerToDate#1 test 1
 :)
 declare
 %test:name(
-"
-should convert newBase60 to date"
+"should convert newBase60 to date"
 )
 %test:args('03B')
 %test:assertEquals( '2019-01-01' )
@@ -152,8 +139,7 @@ newBase60:integerToDate#1  test 1
 :)
 declare
 %test:name(
-"
-should convert newBase60 to date"
+"should convert newBase60 to date"
 )
 %test:args('03B')
 %test:assertEquals( '2019-01-01' )
@@ -171,8 +157,7 @@ newBase60:decode#1 test 4
 :)
 declare
 %test:name(
-"
-should convert newBase60 to time"
+"should convert newBase60 to time"
 )
 %test:args('Pzz')
 %test:assertEquals( '23:59:59' )
@@ -180,6 +165,7 @@ function t-newBase60:getTimeFromBase60EncodedLastSecondOfDay($arg){
 (: arrange  =>                      action :)
 $arg => newBase60:decode()  => newBase60:integerToTime()
 };
+
 
 
 
