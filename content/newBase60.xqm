@@ -104,7 +104,8 @@ from a time or date represented as an integer encode as a base60 string
 :)
 declare
 function newBase60:encode($n as xs:integer) as xs:string {
-let $seq1 := (0 to 9)
+()
+(:let $seq1 := (0 to 9)
 let $seq2 := map(function($x) { codepoints-to-string($x) }, string-to-codepoints('A') to string-to-codepoints('H'))
 let $seq3 := map(function($x) { codepoints-to-string($x) }, string-to-codepoints('J') to string-to-codepoints('N'))
 let $seq4 := map(function($x) { codepoints-to-string($x) }, string-to-codepoints('P') to string-to-codepoints('Z'))
@@ -123,6 +124,8 @@ return
 (
 string-join(map(function($n){$getChar($n)}, $seqNth),'')
 )
+:)
+
 };
 
 (:~
@@ -132,8 +135,8 @@ from a newBase60 decode into a time or date represented as an integer
 :)
 declare 
 function newBase60:decode($nb60 as xs:string ) as xs:integer{
+ ( )(:
   let $base := 60
-(:  The entry point is  $strB60 :)
   let $seqDecode :=
   map(function( $codePoint ){
    let $c := xs:integer($codePoint)
@@ -159,6 +162,7 @@ function newBase60:decode($nb60 as xs:string ) as xs:integer{
   let $decoded := $tot($dc2, $seqDecode[3])
   return
    $tot($dc2, $seqDecode[3])
+   :)
 };
 
 (:~
