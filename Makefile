@@ -89,8 +89,8 @@ release:
 	@echo '##[ $@ ]##'
 	@$(if $(shell travis status | grep -oP 'passed'),travis status && true, 'passed', travis status && false )
 	@$(if $(shell git tag | grep -oP '$(shell cat VERSION)'),false,true)
-	@#$(if $(shell git status -s --porcelain),$(shell git commit -am 'tagged release prep'),)
-	@#git push
+	@$(if $(shell git status -s --porcelain),$(shell git commit -am 'tagged release prep'),true)
+	@git push
 	@#git tag v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
 	@#git push origin  v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
 
