@@ -72,34 +72,29 @@ deploy/$(NAME).xar: \
 	@cd build && zip $(abspath $@) -r .
 
 
-.PHONY: reset
-reset:
+.PHONY: reset-version
+reset-version:
 	@echo '##[ $@ ]##'
-	@git describe --abbrev=0 --tag
-	@# git describe --tags $(git rev-list --tags --max-count=1)
-	@echo 'revert .env VERSION to current tag' 
-	@source .env; sed -i "s/^VERSION=$${VERSION}/VERSION=$(shell git describe --abbrev=0 --tag )/" .env
+	@# git pull --tags
+	@git ls-remote -q --tags  | grep -oP 'v\d+\.\d+\.\d+' | sort | tail -1 > VERSION
+	@bin/semVer $(shell cat VERSION) patch  > VERSION
+	@cat VERSION
+	@# @cat VERSION
+	@# @$(MAKE) --silent &> /dev/null
+	@# @echo v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
+	@#git tag
+
+
 
 .PHONY: release
 release:
 	@echo '##[ $@ ]##'
-	@echo -n "current latest tag: " 
-	@git describe --abbrev=0 --tag &>/dev/null || git tag v0.0.1
-	@# git describe --tags $(git rev-list --tags --max-count=1)
-	@echo 'revert .env VERSION to current tag' 
-	@source .env; sed -i "s/^VERSION=$${VERSION}/VERSION=$(shell git describe --abbrev=0 --tag )/" .env
-	@echo -n ' - bump the version: ' 
-	@bin/semVer patch
-	@grep -oP '^VERSION=\K(.+)$$' .env
-	@echo ' - do a build from the current tag' 
 	@$(MAKE) --silent
-	@#grep -oP '^VERSION=v\K(.+)$$' .env
-	@#grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml
 	@echo v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
 	@#git commit .env -m 'prepare new release version' &>/dev/null || true
 	@#git push
-	@git tag v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
-	@git push origin  v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
+	@#git tag v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
+	@#git push origin  v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
 
 # https://docs.travis-ci.com/user/deployment/releases
 .PHONY: travis-setup-releases

@@ -2,6 +2,12 @@
 VERSION="$1"
 BUMP="$2"
 v=$( echo "${VERSION}" | sed 's/v//' )
+
+echo "version: $VERSION" > /dev/stderr
+echo "bump: $BUMP" > /dev/stderr
+echo "mormalised: $v" > /dev/stderr
+
+
 semverMajor=$( cut -d'.' -f1 <<<  ${v} )
 semverMinor=$( cut -d'.' -f2 <<<  ${v} )
 semverPatch=$( cut -d'.' -f3 <<<  ${v} )
@@ -19,5 +25,7 @@ case "${BUMP}" in
   *)
   newVer="v${semverMajor}.${semverMinor}.$((semverPatch + 1))"
 esac
+
+echo "new version: ${newVer}" > /dev/stderr
 echo "${newVer}"
 

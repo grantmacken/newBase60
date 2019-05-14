@@ -3,5 +3,4 @@ deploy
 tmp
 bin/webhook
 notes
-VERSION
 docker-compose.override.yml
