@@ -88,7 +88,7 @@ reset-version:
 release:
 	@echo '##[ $@ ]##'
 	@$(if $(shell travis status | grep -oP 'passed'),travis status && true, 'passed', travis status && false )
-	@[[ $(shell git tag | grep -c $$(cat VERSION)) -eq 0 ]] || (echo ' - all ready tagged'; false)
+	@$(if $(shell git tag | grep -oP '$(shell cat VERSION)'),false,false)
 	@#$(if $(shell git status -s --porcelain),$(shell git commit -am 'tagged release prep'),)
 	@#git push
 	@#git tag v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
