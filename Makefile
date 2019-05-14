@@ -1,7 +1,7 @@
 SHELL=/bin/bash
-LAST_TAG_COMMIT = $(shell git rev-list --tags --max-count=1)
-LAST_TAG = $(shell git describe --tags $(LAST_TAG_COMMIT) )
-TAG_PREFIX = "v"
+# LAST_TAG_COMMIT = $(shell git rev-list --tags --max-count=1)
+# LAST_TAG = $(shell git describe --tags $(LAST_TAG_COMMIT) )
+# TAG_PREFIX = "v"
 VERSION != grep -oP '^v\K(.+)$$' VERSION
 include .env
 git_user != git config user.name
@@ -30,7 +30,7 @@ build: deploy/$(NAME).xar
 	@bin/xQdeploy $<
 	@bin/semVer $(VERSION) patch > VERSION
 	@#touch unit-tests/t-$(NAME).xqm
-	@echo -n 'INFO: prepped for next build: ' && cat VERSION
+	@#echo -n 'INFO: prepped for next build: ' && cat VERSION
 
 .PHONY: test
 test: unit-tests/t-$(NAME).xqm 
@@ -71,16 +71,18 @@ deploy/$(NAME).xar: \
 	@mkdir -p $(dir $@)
 	@cd build && zip $(abspath $@) -r .
 
+remoteTag != git ls-remote -q --tags  | grep -oP 'v\d+\.\d+\.\d+' | sort | tail -1
 
 .PHONY: reset-version
 reset-version:
 	@echo '##[ $@ ]##'
 	@# git pull --tags
-	@git ls-remote -q --tags  | grep -oP 'v\d+\.\d+\.\d+' | sort | tail -1 > VERSION
-	@bin/semVer $(shell cat VERSION) patch  > VERSION
-	@cat VERSION
-	@# @cat VERSION
-	@# @$(MAKE) --silent &> /dev/null
+	@echo ' - get the latest pushed tag from remote and update VERSION'
+	@bin/semVer $(remoteTag) patch  > VERSION
+	@echo ' commit version and push '
+	@git commit -m 'version update: $(shell cat VERSION )' VERSION
+	@git push
+	@travis open
 	@# @echo v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
 	@#git tag
 
@@ -100,8 +102,14 @@ release:
 .PHONY: travis-setup-releases
 travis-setup-releases:
 	@echo '##[ $@ ]##'
+	@gem install --user-install travis
 	@travis setup releases
-	@#travis encrypt TOKEN="$$(<../.myJWT)" --add 
+	@#travis encrypt TOKEN="$$(<../.myJWT)" --add
+
+.PHONY: travis-setup
+travis-setup:
+	@echo '##[ $@ ]##'
+	@gem install --user-install travis
 
 .PHONY: gitLog
 gitLog:
