@@ -87,7 +87,7 @@ reset-version:
 .PHONY: release
 release:
 	@echo '##[ $@ ]##'
-	@$(if $(shell travis status | grep -oP 'passd'),echo 'passed',echo 'fail';false )
+	@$(if $(shell travis status | grep -oP 'passed'),travis status && true, 'passed', travis status && false )
 	@[[ $(shell git tag | grep -c $$(cat VERSION)) -eq 0 ]] || (echo ' - all ready tagged'; false)
 	@#$(if $(shell git status -s --porcelain),$(shell git commit -am 'tagged release prep'),)
 	@#git push
