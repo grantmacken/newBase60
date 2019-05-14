@@ -71,14 +71,14 @@ deploy/$(NAME).xar: \
 	@mkdir -p $(dir $@)
 	@cd build && zip $(abspath $@) -r .
 
-remoteTag != git ls-remote -q --tags  | grep -oP 'v\d+\.\d+\.\d+' | sort | tail -1
-
 .PHONY: reset-version
 reset-version:
 	@echo '##[ $@ ]##'
 	@# git pull --tags
 	@echo ' - get the latest pushed tag from remote and update VERSION'
-	@bin/semVer $(remoteTag) patch  > VERSION
+	@bin/semVer \
+ $(shell git ls-remote -q --tags  | grep -oP 'v\d+\.\d+\.\d+' | sort | tail -1 ) \
+ patch  > VERSION
 	@echo ' commit version and push '
 	@git commit -m 'version update: $(shell cat VERSION )' VERSION
 	@git push
@@ -88,11 +88,13 @@ reset-version:
 release:
 	@echo '##[ $@ ]##'
 	@$(if $(shell travis status | grep -oP 'passed'),travis status && true, 'passed', travis status && false )
-	@$(if $(shell git tag | grep -oP '$(shell cat VERSION)'),false,true)
-	@$(if $(shell git status -s --porcelain),git commit -am 'tagged release prep',true)
+	@$(if $(shell git tag | grep -oP '$(shell cat VERSION)'),git tag -d $(shell cat VERSION),true)
+	@$(if $(shell git status -s --porcelain),git commit -am 'tagged release $(shell cat VERSION)',true)
 	@git push
-	@#git tag v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
-	@#git push origin  v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
+	@git tag $(shell cat VERSION)
+	@git --no-pager show v0.0.6
+	@git push origin $(shell cat VERSION)
+
 
 # https://docs.travis-ci.com/user/deployment/releases
 .PHONY: travis-setup-releases
