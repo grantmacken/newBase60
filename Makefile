@@ -83,17 +83,13 @@ reset-version:
 	@git commit -m 'version update: $(shell cat VERSION )' VERSION
 	@git push
 	@travis open
-	@# @echo v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
-	@#git tag
-
-
 
 .PHONY: release
 release:
 	@echo '##[ $@ ]##'
-	@$(MAKE) --silent
-	@echo v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
-	@#git commit .env -m 'prepare new release version' &>/dev/null || true
+	@travis status | grep -oP 'passed'
+	@[[ $(shell git tag | grep -c $$(cat VERSION)) -eq 0 ]] || (echo ' - all ready tagged'; false)
+	@#$(if $(shell git status -s --porcelain),$(shell git commit -am 'tagged release prep'),)
 	@#git push
 	@#git tag v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
 	@#git push origin  v$(shell grep -oP 'version="\K((\d+\.){2}\d+)' build/expath-pkg.xml)
