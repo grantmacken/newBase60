@@ -15,6 +15,16 @@ module namespace newBase60  = "http://markup.nz/#newBase60";
 : 
 :)
 
+declare variable  $newBase60:chars := 
+         ["0","1","2","3","4","5","6","7","8","9",
+          "A","B","C","D","E","F","G","H","J","K",
+          "L","M","N","P","Q","R","S","T","U","V",
+          "W","X","Y","Z","_","a","b","c","d","e",
+          "f","g","h","i","j","k","m","n","o","p",
+          "q","r","s","t","u","v","w","x","y","z"];
+
+declare variable $newBase60:base := array:size($newBase60:chars);
+
 (:~
 show what lib can do in example
 :)
@@ -104,25 +114,15 @@ from a time or date represented as an integer encode as a base60 string
 :)
 declare
 function newBase60:encode($n as xs:integer) as xs:string {
-let $seq1 := (0 to 9)
-let $seq2 := map(function($x) { codepoints-to-string($x) }, string-to-codepoints('A') to string-to-codepoints('H'))
-let $seq3 := map(function($x) { codepoints-to-string($x) }, string-to-codepoints('J') to string-to-codepoints('N'))
-let $seq4 := map(function($x) { codepoints-to-string($x) }, string-to-codepoints('P') to string-to-codepoints('Z'))
-let $seq5 := ('_')
-let $seq6 := map(function($x) { codepoints-to-string($x) }, string-to-codepoints('a') to string-to-codepoints('k'))
-let $seq7 := map(function($x) { codepoints-to-string($x) }, string-to-codepoints('m') to string-to-codepoints('z'))
-let $seqChars := ($seq1, $seq2, $seq3, $seq4, $seq5 , $seq6, $seq7)
-let $base := count($seqChars)
-let $getRemainder := function($n){($n mod xs:integer($base))}
-let $getChar := function($n){$seqChars[xs:integer($getRemainder($n) + 1)]}
-let $nextN   := function($n){ ($n - xs:integer($getRemainder($n))) div xs:integer($base)}
-let $getChar := function($n){$seqChars[xs:integer($getRemainder($n) + 1)]}
-let $nextN   := function($n){ ($n - xs:integer($getRemainder($n))) div xs:integer($base)}
-let $seqNth  := ( xs:integer($nextN($nextN($n))), xs:integer($nextN($n)) , xs:integer($n) )
+let $getRemainder := function( $n as xs:integer ){($n mod xs:integer($newBase60:base))}
+let $getChar := function($n){$newBase60:chars => array:get(xs:integer($getRemainder($n) + 1))}
+let $nextN   := function($n as xs:integer){
+    ($n - xs:integer($getRemainder($n))) div $newBase60:base
+    }
 return
-(
-string-join(map(function($n){$getChar($n)}, $seqNth),'')
-)
+   ($getChar($n => $nextN() => $nextN()),
+    $getChar($n => $nextN()), 
+    $getChar($n)) => string-join('')
 };
 
 (:~
@@ -131,11 +131,10 @@ from a newBase60 decode into a time or date represented as an integer
 @return decoded a time or date represented as an integer
 :)
 declare 
-function newBase60:decode($nb60 as xs:string ) as xs:integer{
-  let $base := 60
-(:  The entry point is  $strB60 :)
-  let $seqDecode :=
-  map(function( $codePoint ){
+function newBase60:decode($nb60 as xs:string ){
+ let $nl := "&#10;"
+ let $decode := 
+    function( $codePoint ){
    let $c := xs:integer($codePoint)
    return
            if ($c >= 48 and $c <= 57 ) then ($c - 48)
@@ -148,18 +147,17 @@ function newBase60:decode($nb60 as xs:string ) as xs:integer{
      else if ($c >= 97 and $c <= 107 ) then ($c - 62)
      else if ($c >= 109 and $c <= 122 ) then ($c - 63)
      else(0)
-     },
-     (map(function($ch){string-to-codepoints($ch)}, (for $ch in string-to-codepoints($nb60)
-    return codepoints-to-string($ch)))
-     ))
-  let $tot := function($n2, $c){xs:integer(($base * $n2) + $c )}
-  let $n2 := 0
-  let $dc1 := $tot($n2, $seqDecode[1])
-  let $dc2 := $tot($dc1, $seqDecode[2])
-  let $decoded := $tot($dc2, $seqDecode[3])
-  return
-   $tot($dc2, $seqDecode[3])
-};
+     } 
+  let $seq := for $cp in string-to-codepoints($nb60)
+              return $cp => $decode()
+return
+fold-left($seq,0,
+          function($seed, 
+                   $current){
+                      ($newBase60:base * $seed) + $current
+                    }
+          )
+ };
 
 (:~
 convert a decoded short date integer into xs:date

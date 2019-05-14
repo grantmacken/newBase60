@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-BUMP=$1
-
-function semver(){
-local v=$( echo "${1}" | sed 's/v//' )
-local semverMajor=$( cut -d'.' -f1 <<<  ${v} )
-local semverMinor=$( cut -d'.' -f2 <<<  ${v} )
-local semverPatch=$( cut -d'.' -f3 <<<  ${v} )
-local currentVer="v${semverMajor}.${semverMinor}.${semverPatch}"
-case "${2}" in
+VERSION="$1"
+BUMP="$2"
+v=$( echo "${VERSION}" | sed 's/v//' )
+semverMajor=$( cut -d'.' -f1 <<<  ${v} )
+semverMinor=$( cut -d'.' -f2 <<<  ${v} )
+semverPatch=$( cut -d'.' -f3 <<<  ${v} )
+currentVer="v${semverMajor}.${semverMinor}.${semverPatch}"
+case "${BUMP}" in
   patch)
   newVer="v${semverMajor}.${semverMinor}.$((semverPatch + 1))"
   ;;
@@ -21,10 +20,4 @@ case "${2}" in
   newVer="v${semverMajor}.${semverMinor}.$((semverPatch + 1))"
 esac
 echo "${newVer}"
-}
-
-source .env
-NEW_VERSION=$(semver $VERSION $BUMP)
-sed -i "s/^VERSION=${VERSION}/VERSION=${NEW_VERSION}/" .env
-
 

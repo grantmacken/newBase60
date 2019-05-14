@@ -1,38 +1,41 @@
 SHELL=/bin/bash
+LAST_TAG_COMMIT = $(shell git rev-list --tags --max-count=1)
+LAST_TAG = $(shell git describe --tags $(LAST_TAG_COMMIT) )
+TAG_PREFIX = "v"
+VERSION != grep -oP '^v\K(.+)$$' VERSION
 include .env
 git_user != git config user.name
 nsname=http://$(NS_DOMAIN)/\#$(NAME)
 title != echo $(TITLE)
-include inc/repo.mk inc/expath-pkg.mk
-.PHONY: all
-all: build
+include inc/*
 
-.PHONY: test
-test: unit-tests/t-$(NAME).xqm 
-	@bin/xQcompile $<
-	@prove -v bin/xQtest
+.PHONY: default
+default: clean compile-main build
 
 .PHONY: clean
 clean:
-	@rm -rfv tmp
-	@rm -rfv build
-	@rm -rfv deploy
-
-.PHONY: up
-up: 
-	@echo -e '##[ $@ ]##'
-	@bin/exStartUp
-
-.PHONY: down
-down:
-	@echo -e '##[ $@ ]##'
-	@docker-compose down
+	@rm -rfv tmp &>/dev/null
+	@rm -rfv build &>/dev/null
+	@rm -rfv deploy &>/dev/null
 
 .PHONY: compile-main
 compile-main: content/${NAME}.xqm
 	@echo '##[ $@  $< ]##'
 	@mkdir -p tmp
 	@bin/xQcompile $<
+
+.PHONY: build
+build: deploy/$(NAME).xar
+	@echo '##[ $@ ]##'
+	@bin/xQdeploy $<
+	@bin/semVer $(VERSION) patch > VERSION
+	@#touch unit-tests/t-$(NAME).xqm
+	@echo -n 'INFO: prepped for next build: ' && cat VERSION
+
+.PHONY: test
+test: unit-tests/t-$(NAME).xqm 
+	@bin/xQcompile $<
+	@prove -v bin/xQtest
 
 .PHONY: compile-test
 compile-test: unit-tests/t-${NAME}.xqm
@@ -68,12 +71,6 @@ deploy/$(NAME).xar: \
 	@mkdir -p $(dir $@)
 	@cd build && zip $(abspath $@) -r .
 
-.PHONY: build
-build: compile-main deploy/$(NAME).xar
-	@echo '##[ $@ ]##'
-	@bin/xQdeploy deploy/$(NAME).xar
-	@bin/semVer patch
-	@touch unit-tests/t-$(NAME).xqm
 
 .PHONY: reset
 reset:
@@ -121,8 +118,7 @@ gitLog:
 .PHONY: smoke
 smoke: 
 	@echo '##[ $@ ]##'
-	@bin/xQcall 'newBase60:example()' \
- | grep -oP '^\s-\s(\w|-)(.+)$$'
+	@bin/xQcall 'newBase60:example()'
 
 .PHONY: rec
 rec:
@@ -135,3 +131,15 @@ play:
 .PHONY: upload
 upload:
 	asciinema upload tmp/newBase60.cast
+
+
+.PHONY: up
+up: clean
+	@echo -e '##[ $@ ]##'
+	@bin/exStartUp
+	@touch VERSION && echo 'v0.0.1' > VERSION
+
+.PHONY: down
+down:
+	@echo -e '##[ $@ ]##'
+	@docker-compose down  --remove-orphans
